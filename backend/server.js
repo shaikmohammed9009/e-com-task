@@ -18,11 +18,42 @@ const Product = require('./models/Product');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configure CORS to allow requests from any origin (for development and testing)
+// In production, you might want to restrict this to specific domains
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost requests (development)
+    if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {
+      return callback(null, true);
+    }
+    
+    // Allow requests from any vercel.app domain (for flexibility with deployments)
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow specific domains
+    const allowedOrigins = [
+      'https://e-com-task-5m86m6cw3-shaikmohammed9009-gmailcoms-projects.vercel.app',
+      'https://e-com-task-othl.vercel.app'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Block other origins
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+};
+
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
@@ -30,9 +61,15 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/checkout', checkoutRoutes);
 
-// Health check endpoint
+// Health check endpoint with CORS headers explicitly set
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+  res.header('Access-Control-Allow-Origin', '*');
+  res.json({ 
+    status: 'OK', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    origin: req.get('Origin') || 'No Origin Header'
+  });
 });
 
 /**
