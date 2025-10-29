@@ -32,6 +32,9 @@ let cartCollection;
  */
 async function connectDB() {
   try {
+    console.log("Attempting to connect to MongoDB...");
+    console.log("URI:", uri.replace(process.env.DB_PASSWORD, '****')); // Hide password in logs
+    
     await client.connect();
     console.log("✓ Connected to MongoDB");
     
@@ -43,6 +46,8 @@ async function connectDB() {
     return { db, productsCollection, cartCollection };
   } catch (error) {
     console.error("✗ Error connecting to MongoDB:", error.message);
+    console.error("Error code:", error.code);
+    console.error("Error name:", error.name);
     throw error;
   }
 }

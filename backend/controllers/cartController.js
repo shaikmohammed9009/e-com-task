@@ -87,6 +87,9 @@ async function addToCart(req, res) {
   try {
     const { productId, quantity } = req.body;
     
+    // Log the request for debugging
+    console.log("addToCart request:", { productId, quantity });
+    
     // Validate input
     if (!productId || quantity === undefined) {
       return res.status(400).json({ message: 'productId and quantity are required' });
@@ -96,8 +99,28 @@ async function addToCart(req, res) {
     const product = await helpers.findProductById(productId);
     if (!product) {
       console.log("Product not found for ID:", productId);
+      // Log all available products for debugging
+      try {
+        const productsCollection = getProductsCollection();
+        if (productsCollection) {
+          const allProducts = await productsCollection.find({}).toArray();
+          console.log("Available products in DB:", allProducts.map(p => ({
+            id: p._id?.toString(),
+            name: p.name
+          })));
+        } else {
+          console.log("No MongoDB connection, fallback products would be used");
+        }
+      } catch (err) {
+        console.log("Error fetching products for debugging:", err.message);
+      }
       return res.status(404).json({ message: 'Product not found' });
     }
+    
+    console.log("Found product:", {
+      id: product._id ? product._id.toString() : product.id,
+      name: product.name
+    });
     
     // Add to cart using cart manager
     const cartItem = cartManager.addToCart(productId, quantity);

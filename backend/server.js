@@ -5,6 +5,15 @@ const dotenv = require('dotenv');
 // Load environment variables
 dotenv.config();
 
+// Log environment variables at startup for debugging (only in development)
+if (!process.env.VERCEL) {
+  console.log("Environment variables loaded:");
+  console.log("- DB_USERNAME:", process.env.DB_USERNAME || 'Not set');
+  console.log("- DB_CLUSTER:", process.env.DB_CLUSTER || 'Not set');
+  console.log("- DB_NAME:", process.env.DB_NAME || 'Not set');
+  console.log("- DB_PASSWORD:", process.env.DB_PASSWORD ? 'Set' : 'Not set');
+}
+
 // Import routes
 const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
@@ -68,7 +77,83 @@ app.get('/api/health', (req, res) => {
     status: 'OK', 
     message: 'Server is running',
     timestamp: new Date().toISOString(),
-    origin: req.get('Origin') || 'No Origin Header'
+    origin: req.get('Origin') || 'No Origin Header',
+    // Add MongoDB connection status for debugging
+    mongoDB: {
+      username: process.env.DB_USERNAME || 'Not set',
+      cluster: process.env.DB_CLUSTER || 'Not set',
+      dbName: process.env.DB_NAME || 'Not set',
+      password: process.env.DB_PASSWORD ? '****' : 'Not set' // Don't expose password
+    },
+    // Add Vercel detection
+    vercel: process.env.VERCEL ? 'Yes' : 'No',
+    nodeEnv: process.env.NODE_ENV || 'Not set'
+  });
+});
+
+// Add a debug endpoint to test MongoDB connection
+app.get('/api/debug', async (req, res) => {
+  try {
+    const { getProductsCollection, connectDB } = require('./config/database');
+    
+    // Try to get the products collection
+    const productsCollection = getProductsCollection();
+    
+    if (!productsCollection) {
+      return res.json({
+        status: 'error',
+        message: 'No MongoDB connection',
+        env: {
+          DB_USERNAME: process.env.DB_USERNAME || 'Not set',
+          DB_CLUSTER: process.env.DB_CLUSTER || 'Not set',
+          DB_NAME: process.env.DB_NAME || 'Not set',
+          DB_PASSWORD: process.env.DB_PASSWORD ? 'Set' : 'Not set'
+        }
+      });
+    }
+    
+    // Try to fetch products
+    const products = await productsCollection.find({}).toArray();
+    
+    res.json({
+      status: 'success',
+      message: 'MongoDB connection working',
+      productCount: products.length,
+      sampleProducts: products.slice(0, 3).map(p => ({
+        id: p._id?.toString(),
+        name: p.name
+      })),
+      env: {
+        DB_USERNAME: process.env.DB_USERNAME || 'Not set',
+        DB_CLUSTER: process.env.DB_CLUSTER || 'Not set',
+        DB_NAME: process.env.DB_NAME || 'Not set',
+        DB_PASSWORD: process.env.DB_PASSWORD ? 'Set' : 'Not set'
+      }
+    });
+  } catch (error) {
+    res.json({
+      status: 'error',
+      message: error.message,
+      stack: error.stack,
+      env: {
+        DB_USERNAME: process.env.DB_USERNAME || 'Not set',
+        DB_CLUSTER: process.env.DB_CLUSTER || 'Not set',
+        DB_NAME: process.env.DB_NAME || 'Not set',
+        DB_PASSWORD: process.env.DB_PASSWORD ? 'Set' : 'Not set'
+      }
+    });
+  }
+});
+
+// Add a simple env test endpoint
+app.get('/api/env-test', (req, res) => {
+  res.json({
+    DB_USERNAME: process.env.DB_USERNAME || 'Not set',
+    DB_CLUSTER: process.env.DB_CLUSTER || 'Not set',
+    DB_NAME: process.env.DB_NAME || 'Not set',
+    DB_PASSWORD: process.env.DB_PASSWORD ? 'Set' : 'Not set',
+    VERCEL: process.env.VERCEL ? 'Yes' : 'No',
+    NODE_ENV: process.env.NODE_ENV || 'Not set'
   });
 });
 
