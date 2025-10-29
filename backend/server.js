@@ -83,11 +83,23 @@ app.get('/api/health', (req, res) => {
       username: process.env.DB_USERNAME || 'Not set',
       cluster: process.env.DB_CLUSTER || 'Not set',
       dbName: process.env.DB_NAME || 'Not set',
-      password: process.env.DB_PASSWORD ? '****' : 'Not set' // Don't expose password
+      password: process.env.DB_PASSWORD ? 'Set' : 'Not set'
     },
     // Add Vercel detection
     vercel: process.env.VERCEL ? 'Yes' : 'No',
     nodeEnv: process.env.NODE_ENV || 'Not set'
+  });
+});
+
+// Add a simple env test endpoint
+app.get('/api/env-test', (req, res) => {
+  res.json({
+    DB_USERNAME: process.env.DB_USERNAME || 'Not set',
+    DB_CLUSTER: process.env.DB_CLUSTER || 'Not set',
+    DB_NAME: process.env.DB_NAME || 'Not set',
+    DB_PASSWORD: process.env.DB_PASSWORD ? 'Set' : 'Not set',
+    VERCEL: process.env.VERCEL ? 'Yes' : 'No',
+    NODE_ENV: process.env.NODE_ENV || 'Not set'
   });
 });
 
@@ -143,18 +155,6 @@ app.get('/api/debug', async (req, res) => {
       }
     });
   }
-});
-
-// Add a simple env test endpoint
-app.get('/api/env-test', (req, res) => {
-  res.json({
-    DB_USERNAME: process.env.DB_USERNAME || 'Not set',
-    DB_CLUSTER: process.env.DB_CLUSTER || 'Not set',
-    DB_NAME: process.env.DB_NAME || 'Not set',
-    DB_PASSWORD: process.env.DB_PASSWORD ? 'Set' : 'Not set',
-    VERCEL: process.env.VERCEL ? 'Yes' : 'No',
-    NODE_ENV: process.env.NODE_ENV || 'Not set'
-  });
 });
 
 /**
