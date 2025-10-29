@@ -12,14 +12,23 @@ const helpers = {
    */
   findProductById: async (id) => {
     try {
-      // Validate ObjectId format
-      if (!ObjectId.isValid(id)) {
-        return null;
+      const productsCollection = getProductsCollection();
+      
+      // First try to find by ObjectId (MongoDB format)
+      if (ObjectId.isValid(id)) {
+        const product = await productsCollection.findOne({ _id: new ObjectId(id) });
+        if (product) return product;
       }
       
-      const productsCollection = getProductsCollection();
-      return await productsCollection.findOne({ _id: new ObjectId(id) });
+      // If that fails, try to find by string ID (fallback for compatibility)
+      const product = await productsCollection.findOne({ id: id });
+      if (product) return product;
+      
+      // If both fail, try to find by _id as string
+      const productByStringId = await productsCollection.findOne({ _id: id });
+      return productByStringId;
     } catch (error) {
+      console.error("Error finding product by ID:", error.message);
       return null;
     }
   }
@@ -45,7 +54,7 @@ async function getCart(req, res) {
           productId: item.productId,
           quantity: item.quantity,
           product: {
-            id: product._id.toString(),
+            id: product._id ? product._id.toString() : product.id,
             name: product.name,
             price: product.price,
             description: product.description,
@@ -86,6 +95,7 @@ async function addToCart(req, res) {
     // Check if product exists
     const product = await helpers.findProductById(productId);
     if (!product) {
+      console.log("Product not found for ID:", productId);
       return res.status(404).json({ message: 'Product not found' });
     }
     
@@ -98,7 +108,7 @@ async function addToCart(req, res) {
       productId: cartItem.productId,
       quantity: cartItem.quantity,
       product: {
-        id: product._id.toString(),
+        id: product._id ? product._id.toString() : product.id,
         name: product.name,
         price: product.price,
         description: product.description,
