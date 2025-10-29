@@ -8,6 +8,7 @@ import OrderTracking from "./components/OrderTracking";
 import "./App.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_ENDPOINTS } from "./config/api";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -25,7 +26,7 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/products");
+      const response = await fetch(API_ENDPOINTS.PRODUCTS);
       const data = await response.json();
       setProducts(data);
     } catch (error) {
@@ -35,7 +36,7 @@ function App() {
 
   const fetchCart = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/cart");
+      const response = await fetch(API_ENDPOINTS.CART);
       const data = await response.json();
       console.log("fetchCart called, received data:", data);
       setCart(data);
@@ -47,7 +48,7 @@ function App() {
   const addToCart = async (productId, quantity = 1) => {
     console.log("addToCart called with:", { productId, quantity });
     try {
-      const response = await fetch("http://localhost:5000/api/cart", {
+      const response = await fetch(API_ENDPOINTS.CART, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +90,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/cart/${itemId}`, {
+      const response = await fetch(`${API_ENDPOINTS.CART}/${itemId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +112,7 @@ function App() {
 
   const removeFromCart = async (itemId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/cart/${itemId}`, {
+      const response = await fetch(`${API_ENDPOINTS.CART}/${itemId}`, {
         method: "DELETE",
       });
 
@@ -158,7 +159,7 @@ function App() {
       
       console.log("Sending checkout data to backend:", checkoutPayload);
       
-      const response = await fetch("http://localhost:5000/api/checkout", {
+      const response = await fetch(API_ENDPOINTS.CHECKOUT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

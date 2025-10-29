@@ -111,3 +111,9 @@ node/
 
 # Debugging logs
 *.log
+
+# Frontend environment files (except .env.example)
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
