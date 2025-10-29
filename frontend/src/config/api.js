@@ -1,8 +1,9 @@
 // API Configuration
-// Use Vercel URL for production, fallback to localhost for development
-export const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000' 
-  : 'https://e-com-task-othl.vercel.app';
+// Use environment variables or fallback to defaults
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000' 
+    : 'https://e-com-task-othl.vercel.app');
 
 // API Endpoints
 export const API_ENDPOINTS = {
