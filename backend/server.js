@@ -47,7 +47,8 @@ const corsOptions = {
     // Allow specific domains
     const allowedOrigins = [
       'https://e-com-task-5m86m6cw3-shaikmohammed9009-gmailcoms-projects.vercel.app',
-      'https://e-com-task-othl.vercel.app'
+      'https://e-com-task-othl.vercel.app',
+      'https://e-com-task-one.vercel.app'  // Add this domain
     ];
     
     if (allowedOrigins.includes(origin)) {
@@ -190,7 +191,21 @@ async function startServer() {
 }
 
 // Export the Express app for Vercel
-module.exports = app;
+module.exports = (req, res) => {
+  // Set CORS headers for Vercel functions
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  // Pass the request to the Express app
+  return app(req, res);
+};
 
 // Start the server only if not running on Vercel
 if (!process.env.VERCEL) {
