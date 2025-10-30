@@ -7,6 +7,7 @@ const Cart = ({ cart, onUpdateItem, onRemoveItem, onCheckout }) => {
   const [quantities, setQuantities] = useState({});
 
   const handleQuantityChange = (itemId, value) => {
+    console.log('handleQuantityChange called with:', { itemId, value });
     setQuantities(prev => ({
       ...prev,
       [itemId]: Math.max(1, parseInt(value) || 1)
@@ -14,6 +15,8 @@ const Cart = ({ cart, onUpdateItem, onRemoveItem, onCheckout }) => {
   };
 
   const handleUpdateQuantity = (itemId) => {
+    console.log('handleUpdateQuantity called with itemId:', itemId);
+    console.log('Type of itemId:', typeof itemId);
     const quantity = quantities[itemId] || 1;
     onUpdateItem(itemId, quantity);
     toast.success('Cart item updated!');
@@ -114,6 +117,8 @@ const Cart = ({ cart, onUpdateItem, onRemoveItem, onCheckout }) => {
                       </button>
                       <button 
                         onClick={() => {
+                          console.log('Remove button clicked with itemId:', item.id);
+                          console.log('Type of item.id:', typeof item.id);
                           onRemoveItem(item.id);
                           toast.success('Item removed from cart!');
                         }}

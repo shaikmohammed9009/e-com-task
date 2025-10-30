@@ -84,19 +84,37 @@ function App() {
   };
 
   const updateCartItem = async (itemId, quantity) => {
+    // Debug the itemId
+    console.log('Raw itemId:', itemId);
+    console.log('Type of itemId:', typeof itemId);
+    
+    // Clean the itemId if it contains a colon
+    const cleanItemId = typeof itemId === 'string' && itemId.includes(':') 
+      ? itemId.split(':')[1] 
+      : itemId;
+      
+    console.log('Cleaned itemId:', cleanItemId);
+    
     if (quantity <= 0) {
-      removeFromCart(itemId);
+      removeFromCart(cleanItemId);
       return;
     }
 
+    console.log('updateCartItem called with:', { itemId: cleanItemId, quantity });
+    console.log('API_ENDPOINTS.CART:', API_ENDPOINTS.CART);
+    const url = `${API_ENDPOINTS.CART}/${cleanItemId}`;
+    console.log('Constructed URL:', url);
+
     try {
-      const response = await fetch(`${API_ENDPOINTS.CART}/${itemId}`, {
+      const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ quantity }),
       });
+
+      console.log('Update response status:', response.status);
 
       if (response.ok) {
         toast.success("Cart item updated successfully!");
@@ -111,10 +129,28 @@ function App() {
   };
 
   const removeFromCart = async (itemId) => {
+    // Debug the itemId
+    console.log('Raw itemId in removeFromCart:', itemId);
+    console.log('Type of itemId in removeFromCart:', typeof itemId);
+    
+    // Clean the itemId if it contains a colon
+    const cleanItemId = typeof itemId === 'string' && itemId.includes(':') 
+      ? itemId.split(':')[1] 
+      : itemId;
+      
+    console.log('Cleaned itemId in removeFromCart:', cleanItemId);
+    
+    console.log('removeFromCart called with itemId:', cleanItemId);
+    console.log('API_ENDPOINTS.CART:', API_ENDPOINTS.CART);
+    const url = `${API_ENDPOINTS.CART}/${cleanItemId}`;
+    console.log('Constructed URL:', url);
+
     try {
-      const response = await fetch(`${API_ENDPOINTS.CART}/${itemId}`, {
+      const response = await fetch(url, {
         method: "DELETE",
       });
+
+      console.log('Remove response status:', response.status);
 
       if (response.ok) {
         toast.success("Item removed from cart!");
