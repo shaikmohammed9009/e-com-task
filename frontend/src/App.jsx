@@ -42,6 +42,7 @@ function App() {
       console.log("fetchCart called, received data:", data);
       console.log("Cart items count:", data.items.length);
       setCart(data);
+      console.log("Cart state updated with items count:", data.items.length);
     } catch (error) {
       console.error("Error fetching cart:", error);
     }
@@ -300,9 +301,7 @@ function App() {
               >
                 <span className="nav-icon"> 🛒 </span>
                 Cart{" "}
-                {cart.items.length > 0 && (
-                  <span className="cart-count"> {cart.items.length} </span>
-                )}{" "}
+                <span className="cart-count"> {cart.items.length} </span>
               </button>{" "}
             </nav>{" "}
           </div>{" "}
