@@ -1,64 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import './OrderTracking.css';
 
-const OrderTracking = ({ orderId, onBackToHome }) => {
+const OrderTracking = ({ receipt, onBackToHome }) => {
   const [orderStatus, setOrderStatus] = useState('confirmed');
   const [trackingInfo, setTrackingInfo] = useState(null);
 
-  // Mock tracking data - in a real app, this would come from an API
+  // Use actual receipt data instead of mock data
   useEffect(() => {
-    // Simulate fetching tracking data
-    const mockTrackingData = {
-      orderId: orderId || 'VIBE-123456789',
-      status: 'shipped',
-      estimatedDelivery: 'Oct 31, 2025',
-      shippedDate: 'Oct 28, 2025',
-      carrier: 'VibeExpress',
-      trackingNumber: 'VE123456789IN',
-      items: [
-        { name: 'Wireless Headphones', quantity: 1, price: 2999.00 },
-        { name: 'Smart Watch', quantity: 1, price: 5999.00 }
-      ],
-      timeline: [
-        { 
-          status: 'confirmed', 
-          title: 'Order Confirmed', 
-          description: 'Your order has been confirmed', 
-          date: 'Oct 28, 2025 10:30 AM',
-          completed: true
-        },
-        { 
-          status: 'processing', 
-          title: 'Processing', 
-          description: 'We are preparing your order for shipment', 
-          date: 'Oct 28, 2025 2:15 PM',
-          completed: true
-        },
-        { 
-          status: 'shipped', 
-          title: 'Shipped', 
-          description: 'Your order has been shipped', 
-          date: 'Oct 29, 2025 9:00 AM',
-          completed: true
-        },
-        { 
-          status: 'in_transit', 
-          title: 'In Transit', 
-          description: 'Your order is on the way', 
-          date: 'Expected by Oct 31, 2025',
-          completed: false
-        },
-        { 
-          status: 'delivered', 
-          title: 'Delivered', 
-          description: 'Your order has been delivered', 
-          date: '',
-          completed: false
-        }
-      ]
-    };
-    
-    setTrackingInfo(mockTrackingData);
+    if (receipt) {
+      // Create tracking data based on actual receipt
+      const trackingData = {
+        orderId: receipt.id || 'VIBE-123456789',
+        status: 'shipped',
+        estimatedDelivery: 'Oct 31, 2025',
+        shippedDate: new Date(receipt.timestamp).toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric' 
+        }),
+        carrier: 'VibeExpress',
+        trackingNumber: `VE${receipt.id?.substring(0, 10) || '123456789'}IN`,
+        items: receipt.items || [],
+        timeline: [
+          { 
+            status: 'confirmed', 
+            title: 'Order Confirmed', 
+            description: 'Your order has been confirmed', 
+            date: new Date(receipt.timestamp).toLocaleString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            completed: true
+          },
+          { 
+            status: 'processing', 
+            title: 'Processing', 
+            description: 'We are preparing your order for shipment', 
+            date: new Date(new Date(receipt.timestamp).getTime() + 4 * 60 * 60 * 1000).toLocaleString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            completed: true
+          },
+          { 
+            status: 'shipped', 
+            title: 'Shipped', 
+            description: 'Your order has been shipped', 
+            date: new Date(new Date(receipt.timestamp).getTime() + 24 * 60 * 60 * 1000).toLocaleString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            completed: true
+          },
+          { 
+            status: 'in_transit', 
+            title: 'In Transit', 
+            description: 'Your order is on the way', 
+            date: 'Expected by Oct 31, 2025',
+            completed: false
+          },
+          { 
+            status: 'delivered', 
+            title: 'Delivered', 
+            description: 'Your order has been delivered', 
+            date: '',
+            completed: false
+          }
+        ]
+      };
+      
+      setTrackingInfo(trackingData);
+    }
     
     // Simulate order status updates
     const statusInterval = setInterval(() => {
@@ -70,7 +91,7 @@ const OrderTracking = ({ orderId, onBackToHome }) => {
     }, 10000);
     
     return () => clearInterval(statusInterval);
-  }, [orderId, orderStatus]);
+  }, [receipt, orderStatus]);
 
   const getStatusIndex = (status) => {
     const statuses = ['confirmed', 'processing', 'shipped', 'in_transit', 'delivered'];
@@ -143,10 +164,10 @@ const OrderTracking = ({ orderId, onBackToHome }) => {
               {trackingInfo.items.map((item, index) => (
                 <div key={index} className="item-row">
                   <div className="item-info">
-                    <div className="item-name">{item.name}</div>
+                    <div className="item-name">{item.product}</div>
                     <div className="item-quantity">Quantity: {item.quantity}</div>
                   </div>
-                  <div className="item-price">₹{item.price.toFixed(2)}</div>
+                  <div className="item-price">₹{item.total.toFixed(2)}</div>
                 </div>
               ))}
             </div>

@@ -291,6 +291,7 @@ const ProductCard = ({ product, quantity, isAddedToCart, isWishlisted, onQuantit
             )}
           </button>
         </div>
+
       </div>
     </div>
   );

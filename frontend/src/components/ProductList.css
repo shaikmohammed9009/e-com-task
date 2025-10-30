@@ -719,7 +719,13 @@
     flex-direction: column;
   }
   
+  .quantity-selector {
+    order: 1; /* Ensure quantity selector comes first */
+  }
+  
   .add-to-cart-btn {
+    order: 2; /* Ensure add to cart button comes second */
+    width: 100%;
     font-size: 12px;
   }
 }
@@ -753,11 +759,16 @@
   }
   
   .product-actions {
-    flex-direction: row;
+    flex-direction: column;
+  }
+  
+  .quantity-selector {
+    order: 1; /* Ensure quantity selector comes first */
   }
   
   .add-to-cart-btn {
-    width: auto;
+    order: 2; /* Ensure add to cart button comes second */
+    width: 100%;
     font-size: 11px;
   }
   

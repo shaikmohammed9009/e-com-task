@@ -77,7 +77,7 @@ async function processCheckout(req, res) {
     
     // Get cart items from cart manager
     const cartItems = cartManager.getCartItems();
-    console.log("Cart items:", cartItems);
+    console.log("Cart items before checkout:", cartItems);
     
     // Check if cart is empty
     if (cartItems.length === 0) {
@@ -123,7 +123,9 @@ async function processCheckout(req, res) {
     console.log("Generated receipt:", receipt);
     
     // Clear cart using cart manager
+    console.log("Clearing cart...");
     cartManager.clearCart();
+    console.log("Cart cleared. Current cart items:", cartManager.getCartItems());
     
     res.json(receipt);
   } catch (error) {

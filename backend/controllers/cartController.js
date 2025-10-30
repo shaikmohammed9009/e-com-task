@@ -143,6 +143,7 @@ const helpers = {
 async function getCart(req, res) {
   try {
     const cartItems = cartManager.getCartItems();
+    console.log("getCart called, returning cart items:", cartItems);
     let total = 0;
     const itemsWithProducts = [];
     
@@ -169,10 +170,13 @@ async function getCart(req, res) {
       }
     }
     
-    res.json({
+    const response = {
       items: itemsWithProducts,
       total: parseFloat(total.toFixed(2))
-    });
+    };
+    
+    console.log("getCart response:", response);
+    res.json(response);
   } catch (error) {
     console.error("Error fetching cart:", error.message);
     res.status(500).json({ message: 'Internal server error' });

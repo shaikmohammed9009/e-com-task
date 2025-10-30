@@ -36,6 +36,7 @@ function App() {
 
   const fetchCart = async () => {
     try {
+      console.log("Fetching cart from API...");
       const response = await fetch(API_ENDPOINTS.CART);
       const data = await response.json();
       console.log("fetchCart called, received data:", data);
@@ -211,6 +212,12 @@ function App() {
         setReceipt(receiptData);
         setView("confirmation");
         toast.success("Checkout completed successfully!");
+        
+        // Add a small delay before refreshing the cart to ensure backend has processed the clear
+        setTimeout(() => {
+          console.log("Refreshing cart after checkout");
+          fetchCart();
+        }, 500);
       } else {
         const errorData = await response.json();
         console.error("Checkout failed:", errorData);
@@ -223,9 +230,11 @@ function App() {
   };
 
   const closeConfirmation = () => {
+    console.log("closeConfirmation called, clearing receipt and returning to products view");
     setReceipt(null);
     setView("products");
     setCheckoutData(null);
+    console.log("Refreshing cart after order confirmation");
     fetchCart(); // Refresh cart
   };
 
@@ -326,7 +335,7 @@ function App() {
         )}
         {view === "tracking" && (
           <OrderTracking 
-            orderId={receipt?.id}
+            receipt={receipt}
             onBackToHome={handleBackToHome}
           />
         )}
