@@ -8,6 +8,8 @@ const { getProductsCollection } = require('../config/database');
  */
 async function getProducts(req, res) {
   try {
+    console.log('getProducts called, origin:', req.get('Origin'));
+    
     const productsCollection = getProductsCollection();
     
     // Check if we have a valid MongoDB connection

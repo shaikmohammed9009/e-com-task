@@ -41,6 +41,7 @@ const corsOptions = {
     
     // Allow requests from any vercel.app domain (for flexibility with deployments)
     if (origin.includes('vercel.app')) {
+      console.log('Allowing request from Vercel domain:', origin);
       return callback(null, true);
     }
     
@@ -52,9 +53,11 @@ const corsOptions = {
     ];
     
     if (allowedOrigins.includes(origin)) {
+      console.log('Allowing request from allowed origin:', origin);
       return callback(null, true);
     }
     
+    console.log('Blocking request from origin:', origin);
     // Block other origins
     callback(new Error('Not allowed by CORS'));
   },

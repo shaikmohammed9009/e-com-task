@@ -80,35 +80,53 @@ const helpers = {
    */
   findProductById: async (id) => {
     try {
+      console.log("findProductById called with ID:", id);
       const productsCollection = getProductsCollection();
       
       // If no MongoDB connection, use fallback products
       if (!productsCollection) {
         console.log("No MongoDB connection, using fallback products for cart");
         const product = fallbackProducts.find(p => p.id === id);
+        console.log("Fallback product found:", product);
         return product || null;
       }
+      
+      console.log("Searching for product in MongoDB");
       
       // When MongoDB is available, look for products by their _id field
       // First try to find by ObjectId (MongoDB format)
       if (ObjectId.isValid(id)) {
+        console.log("Trying to find product by ObjectId:", id);
         const product = await productsCollection.findOne({ _id: new ObjectId(id) });
-        if (product) return product;
+        if (product) {
+          console.log("Found product by ObjectId");
+          return product;
+        }
       }
       
       // If that fails, try to find by string ID (fallback for compatibility)
       // In MongoDB, we need to look for products by their _id field
+      console.log("Trying to find product by string _id:", id);
       const product = await productsCollection.findOne({ _id: id });
-      if (product) return product;
+      if (product) {
+        console.log("Found product by string _id");
+        return product;
+      }
       
       // Also try to find by ObjectId if the id is a string representation
       try {
+        console.log("Trying to find product by converting string to ObjectId:", id);
         const productByObjectId = await productsCollection.findOne({ _id: new ObjectId(id) });
-        if (productByObjectId) return productByObjectId;
+        if (productByObjectId) {
+          console.log("Found product by converted ObjectId");
+          return productByObjectId;
+        }
       } catch (e) {
         // If ObjectId conversion fails, that's okay
+        console.log("ObjectId conversion failed:", e.message);
       }
       
+      console.log("Product not found in MongoDB");
       return null;
     } catch (error) {
       console.error("Error finding product by ID:", error.message);
@@ -172,6 +190,7 @@ async function addToCart(req, res) {
     
     // Log the request for debugging
     console.log("addToCart request:", { productId, quantity });
+    console.log("Request origin:", req.get('Origin'));
     
     // Validate input
     if (!productId || quantity === undefined) {
