@@ -11,13 +11,48 @@ const helpers = {
    */
   findProductById: async (id) => {
     try {
-      // Validate ObjectId format
-      if (!ObjectId.isValid(id)) {
+      const { getProductsCollection } = require('../config/database');
+      const { ObjectId } = require('mongodb');
+      
+      const productsCollection = getProductsCollection();
+      if (!productsCollection) {
         return null;
       }
       
-      const productsCollection = getProductsCollection();
-      return await productsCollection.findOne({ _id: new ObjectId(id) });
+      // Try multiple approaches to find the product
+      let product = null;
+      
+      // Approach 1: Try to find by ObjectId (MongoDB format)
+      if (ObjectId.isValid(id)) {
+        product = await productsCollection.findOne({ _id: new ObjectId(id) });
+        if (product) {
+          return product;
+        }
+      }
+      
+      // Approach 2: Try to find by string ID in _id field
+      product = await productsCollection.findOne({ _id: id });
+      if (product) {
+        return product;
+      }
+      
+      // Approach 3: Try to find by id field (in case of fallback products structure)
+      product = await productsCollection.findOne({ id: id });
+      if (product) {
+        return product;
+      }
+      
+      // Approach 4: Try to convert string to ObjectId if it's a valid format
+      try {
+        const productByObjectId = await productsCollection.findOne({ _id: new ObjectId(id) });
+        if (productByObjectId) {
+          return productByObjectId;
+        }
+      } catch (e) {
+        // If ObjectId conversion fails, that's okay
+      }
+      
+      return null;
     } catch (error) {
       return null;
     }
@@ -42,7 +77,7 @@ async function processCheckout(req, res) {
     console.log("Received checkout request with body:", req.body);
     
     // Extract all possible fields from request body
-    const { name, email, phone, address, city, state, zip, country, paymentMethod } = req.body;
+    const { name, email, phone, address, city, state, zip, country, paymentMethod, cartItems: frontendCartItems } = req.body;
     
     console.log("Extracted fields:", { name, email, phone, address, city, state, zip, country, paymentMethod });
     
@@ -76,21 +111,46 @@ async function processCheckout(req, res) {
     }
     
     // Get cart items from cart manager
-    const cartItems = cartManager.getCartItems();
-    console.log("Cart items before checkout:", cartItems);
+    let cartItems = cartManager.getCartItems();
+    console.log("Cart items from backend storage:", cartItems);
+    
+    // Log additional debugging info
+    console.log("Backend cart items count:", cartItems.length);
+    if (cartItems.length > 0) {
+      console.log("First backend cart item:", cartItems[0]);
+    }
+    
+    // If backend cart is empty, check if frontend sent cart items
+    if (cartItems.length === 0 && frontendCartItems && Array.isArray(frontendCartItems) && frontendCartItems.length > 0) {
+      console.log("Backend cart is empty, using frontend cart items:", frontendCartItems);
+      cartItems = frontendCartItems.map(item => ({
+        id: item.id || item.productId,
+        productId: item.productId,
+        quantity: item.quantity
+      }));
+      console.log("Mapped frontend cart items:", cartItems);
+    }
     
     // Check if cart is empty
     if (cartItems.length === 0) {
+      console.log("Cart is empty, sending error response");
       return res.status(400).json({ message: 'Cart is empty' });
     }
+    
+    console.log("Processing cart items:", cartItems);
     
     // Calculate total
     let total = 0;
     const itemsWithProducts = [];
     
     for (const item of cartItems) {
+      console.log("Processing cart item:", item);
       const product = await helpers.findProductById(item.productId);
       if (product) {
+        console.log("Found product for cart item:", {
+          productName: product.name,
+          productPrice: product.price
+        });
         const itemTotal = product.price * item.quantity;
         total += itemTotal;
         
@@ -100,9 +160,14 @@ async function processCheckout(req, res) {
           price: product.price,
           total: parseFloat(itemTotal.toFixed(2))
         });
+      } else {
+        console.log("Product not found for cart item:", item);
       }
     }
     
+    console.log("Items with products:", itemsWithProducts);
+    console.log("Total calculated:", total);
+
     // Create mock receipt
     const receipt = {
       id: helpers.generateId(),

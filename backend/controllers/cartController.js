@@ -93,27 +93,36 @@ const helpers = {
       
       console.log("Searching for product in MongoDB");
       
-      // When MongoDB is available, look for products by their _id field
-      // First try to find by ObjectId (MongoDB format)
+      // Try multiple approaches to find the product
+      let product = null;
+      
+      // Approach 1: Try to find by ObjectId (MongoDB format)
       if (ObjectId.isValid(id)) {
         console.log("Trying to find product by ObjectId:", id);
-        const product = await productsCollection.findOne({ _id: new ObjectId(id) });
+        product = await productsCollection.findOne({ _id: new ObjectId(id) });
         if (product) {
           console.log("Found product by ObjectId");
           return product;
         }
       }
       
-      // If that fails, try to find by string ID (fallback for compatibility)
-      // In MongoDB, we need to look for products by their _id field
+      // Approach 2: Try to find by string ID in _id field
       console.log("Trying to find product by string _id:", id);
-      const product = await productsCollection.findOne({ _id: id });
+      product = await productsCollection.findOne({ _id: id });
       if (product) {
         console.log("Found product by string _id");
         return product;
       }
       
-      // Also try to find by ObjectId if the id is a string representation
+      // Approach 3: Try to find by id field (in case of fallback products structure)
+      console.log("Trying to find product by id field:", id);
+      product = await productsCollection.findOne({ id: id });
+      if (product) {
+        console.log("Found product by id field");
+        return product;
+      }
+      
+      // Approach 4: Try to convert string to ObjectId if it's a valid format
       try {
         console.log("Trying to find product by converting string to ObjectId:", id);
         const productByObjectId = await productsCollection.findOne({ _id: new ObjectId(id) });
@@ -144,6 +153,13 @@ async function getCart(req, res) {
   try {
     const cartItems = cartManager.getCartItems();
     console.log("getCart called, returning cart items:", cartItems);
+    
+    // Add additional debugging
+    console.log("Cart items count:", cartItems.length);
+    if (cartItems.length > 0) {
+      console.log("First cart item:", cartItems[0]);
+    }
+    
     let total = 0;
     const itemsWithProducts = [];
     
@@ -167,6 +183,8 @@ async function getCart(req, res) {
         };
         total += cartItemWithDetails.total;
         itemsWithProducts.push(cartItemWithDetails);
+      } else {
+        console.log("Product not found for cart item:", item);
       }
     }
     
@@ -230,6 +248,11 @@ async function addToCart(req, res) {
     
     // Add to cart using cart manager
     const cartItem = cartManager.addToCart(productId, quantity);
+    console.log("Added to cart, cart item:", cartItem);
+    
+    // Verify the cart now contains items
+    const currentCartItems = cartManager.getCartItems();
+    console.log("Current cart items after addToCart:", currentCartItems);
     
     // Return the cart item with product details
     const cartItemWithProduct = {

@@ -40,6 +40,7 @@ function App() {
       const response = await fetch(API_ENDPOINTS.CART);
       const data = await response.json();
       console.log("fetchCart called, received data:", data);
+      console.log("Cart items count:", data.items.length);
       setCart(data);
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -183,7 +184,13 @@ function App() {
         state: checkoutData?.state || '',
         zip: checkoutData?.zip || '',
         country: checkoutData?.country || 'India',
-        paymentMethod: paymentData?.paymentMethod || 'card'
+        paymentMethod: paymentData?.paymentMethod || 'card',
+        // Send cart items to backend for serverless compatibility
+        cartItems: cart.items.map(item => ({
+          id: item.id,
+          productId: item.productId || item.product?.id,
+          quantity: item.quantity
+        }))
       };
       
       // Remove any undefined, null, or empty string values for optional fields
@@ -195,6 +202,8 @@ function App() {
       });
       
       console.log("Sending checkout data to backend:", checkoutPayload);
+      console.log("Cart items being sent:", checkoutPayload.cartItems);
+      console.log("Cart items count:", checkoutPayload.cartItems.length);
       
       const response = await fetch(API_ENDPOINTS.CHECKOUT, {
         method: "POST",
@@ -212,7 +221,7 @@ function App() {
         setReceipt(receiptData);
         setView("confirmation");
         toast.success("Checkout completed successfully!");
-        
+      
         // Add a small delay before refreshing the cart to ensure backend has processed the clear
         setTimeout(() => {
           console.log("Refreshing cart after checkout");

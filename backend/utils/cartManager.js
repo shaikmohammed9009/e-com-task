@@ -74,8 +74,10 @@ const cartManager = {
    */
   clearCart: () => {
     console.log("clearCart called, cart items before clearing:", cartItems);
+    const itemsToClear = [...cartItems]; // Save a copy for logging
     cartItems = [];
-    console.log("clearCart completed, cart items after clearing:", cartItems);
+    console.log("clearCart completed, cleared items were:", itemsToClear);
+    console.log("cart items after clearing:", cartItems);
   },
 
   /**
